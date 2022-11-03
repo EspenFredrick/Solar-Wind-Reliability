@@ -1,4 +1,4 @@
 # Solar Wind Propagation Correlation
-### 3D correlation coefficients for ballistic propagation between L1 and the bow shock
+### Space Physics Stuff by Rushikesh Patil and Espen Fredrick
 
 There's not much here right now.
