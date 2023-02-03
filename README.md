@@ -10,3 +10,6 @@ ___
 ___
 
 ### Table of Contents:
+- README.md - *this file*
+- [Metadata](./metadata) - *contains the generated metadata files*
+  - readme.md - *outlines the metadata file structure*
