@@ -6,7 +6,7 @@ ___
 **Email:** espen.fredrick@uta.edu
 
 **Name:** Rushikesh Patil  
-**Email:** (tbd)
+**Email:** rushikesh.patil@mavs.uta.edu
 ___
 
 ### Table of Contents:
