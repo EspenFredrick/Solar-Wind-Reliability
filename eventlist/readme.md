@@ -4,7 +4,7 @@
 The event list contains all the solar wind observation events used in the study. The structure looks like this:
   ```
   time_start              | time_stop                | MMS   | THEMIS | ARTEMIS | OMNI
-  ----------------------------------------------------------------------------
+  -------------------------------------------------------------------------------------
   YYYY-MM-ddThh:mm:ss.000Z| YYYY-MM-ddThh:mm:ss.000Z | inst. | inst.  | inst.   | inst.
   ````
   The following quantities are:
