@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="73743bae-223e-474f-b340-dc94f795ba3e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../scripts/Correlation Calculator.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/workspace.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/workspace.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/SW-Width.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/SW-Width.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
