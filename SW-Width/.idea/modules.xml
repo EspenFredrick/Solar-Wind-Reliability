@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/SW-Width.iml" filepath="$PROJECT_DIR$/.idea/SW-Width.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../scripts/.idea/scripts.iml" filepath="$PROJECT_DIR$/../scripts/.idea/scripts.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../.idea/workspace.iml" filepath="$PROJECT_DIR$/../.idea/workspace.iml" />
     </modules>
   </component>
 </project>
