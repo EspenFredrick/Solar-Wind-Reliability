@@ -13,3 +13,4 @@ ___
 - README.md - *this file*
 - [Metadata](./metadata) - *contains the generated metadata files*
   - readme.md - *outlines the metadata file structure*
+- [Event List](./eventlist) - *contains the list of events used in analysis*
