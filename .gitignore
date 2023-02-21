@@ -1,5 +1,6 @@
-#Mac-specific files
+
 .idea
 .idea/*
 .DS_Store
 *.xml
+*.iml
