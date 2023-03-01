@@ -61,7 +61,7 @@ layout = [[sg.Column(row1, element_justification='l')],
           [plotbtn],
           [out]]
 
-window = sg.Window("Row Demo", layout, size=(900,700))
+window = sg.Window("Plot Tool", layout, size=(900,700))
 
 fig_canvas_agg = None
 
