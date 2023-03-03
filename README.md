@@ -13,12 +13,12 @@ ___
 ___
 
 ### Table of Contents:
-- README.md - *this file*
+- README.md - *This file.*
 - [Metadata](./metadata) - *Contains the generated metadata files.*
   - readme.md - *Outlines the metadata file structure*
 - [Event List](./eventlist) - *Contains the list of events used in analysis.*
   - readme.md - *Outlines the structure of the event list. To append this list, please follow this format.*
 - [Scripts](./scripts) - *Python and ipynb (juptyer) scripts used to calculate correlation coeffients, process data, etc.*
   - Artemis correlation.ipynb - *Correlates either THEMIS or OMNI data with lunar ARTEMIS data.*
- -[GUI](./GUI) - *GUI programs, including the plotting tool.*
+-[GUI](./GUI) - *GUI programs, including the plotting tool.*
 
