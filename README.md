@@ -8,7 +8,7 @@ ___
 **Name:** Rushikesh Patil  
 **Email:** rushikesh.patil@mavs.uta.edu
 
-**Name:** James Truett
+**Name:** James Truett  
 **Email:** jtd4566@mavs.uta.edu
 ___
 
