@@ -2,13 +2,13 @@
 ### This repository contains the scripts and data products produced by this research project.
 ___
 ### Contact Info:
-**Name:** Espen Fredrick  
+**Name:** Espen Fredrick *(Lead graduate student)*  
 **Email:** espen.fredrick@uta.edu
 
-**Name:** Rushikesh Patil  
+**Name:** Rushikesh Patil *(Undergraduate researcher)*  
 **Email:** rushikesh.patil@mavs.uta.edu
 
-**Name:** James Truett  
+**Name:** James Truett *(Undergraduate researcher)*  
 **Email:** jtd4566@mavs.uta.edu
 ___
 
