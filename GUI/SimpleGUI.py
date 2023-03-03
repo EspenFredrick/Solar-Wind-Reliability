@@ -4,18 +4,27 @@ import os.path
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
+from scipy.optimize import curve_fit
+from datetime import datetime as dt
+
 
 #---Functions-----------------------------------------------------------
 def open_csv(file):
-    keys = ['Correlation Coef. (Bx)', 'Correlation Coef. (By)', 'Correlation Coef. (Bz)', 'Time Offset Bx (sec.)', 'Time Offset By (sec.)', 'Time Offset Bz (sec.)', 'Average Bx (nT)', 'Average By (nT)', 'Average Bz (nT)']
-    params = dict((k, []) for k in keys)
+
+    #keys = ['Correlation Coef. (Bx)', 'Correlation Coef. (By)', 'Correlation Coef. (Bz)', 'Time Offset Bx (sec.)', 'Time Offset By (sec.)', 'Time Offset Bz (sec.)', 'Average Bx (nT)', 'Average By (nT)', 'Average Bz (nT)']
+    #params = dict((k, []) for k in keys)
 
     with open(file) as data:
         rows = csv.reader(data)
-        next(rows)
+        headers = next(rows)
+        params = dict((k, []) for k in headers)
+
         for r in rows:
             for i, j in enumerate(params):
-                params[j].append(np.float64(r[i + 2]))
+                if ':' in str(r[i]):
+                    params[j].append(dt.strptime(r[i], '%Y-%m-%d %H:%M:%S'))
+                else:
+                    params[j].append(np.float64(r[i]))
 
     return params
 
@@ -29,19 +38,24 @@ def delete_fig_agg(fig_agg):
     fig_agg.get_tk_widget().forget()
     plt.close('all')
 
+def linear(x, m ,b):
+    return (m*x) + b
+
 #-----------------------------------------------------------------------
 list1 = []
+
+sg.theme("Default 1")
 
 row1 = [[sg.Text("Choose .csv"), sg.In(size=(50, 1), enable_events=True), sg.FileBrowse(key="-CSV-"), sg.Button("Submit")],
         [sg.Text("Load ~/path/to/file.csv", key="-LOADED-")]]
 
-col1 = [[sg.Text("X-axis variable")],
-        [sg.Text("Y-axis variable")],
-        [sg.Text("Fit routine")]]
+col1 = [[sg.Text("X-axis variable:")],
+        [sg.Text("Y-axis variable:")],
+        [sg.Text("Plot Style:")]]
 
 col2 = [[sg.Combo(values=list1, default_value='Select...', size=(30, 1),  enable_events=True, key="-XSELECT-")],
         [sg.Combo(values=list1, default_value='Select...', size=(30, 1),  enable_events=True, key="-YSELECT-")],
-        [sg.Radio("None", "RADIO1", default=True), sg.Radio("Linear", "RADIO1"), sg.Radio("Least squares", "RADIO1")]]
+        [sg.Radio("Scatter", "RADIO1", default=True, key="-SCAT-"), sg.Radio("Line", "RADIO1", key="-LINE-")]]
 
 col3 = [[sg.Text("Plot title:")],
         [sg.Text("X-axis label:")],
@@ -69,6 +83,7 @@ while True:
     event, values = window.read()
     if event == "Submit":
         l = open_csv(values["-CSV-"])
+        list1 = []
         for i in l.keys():
             list1.append(str(i))
 
@@ -85,7 +100,13 @@ while True:
 
         fig = plt.figure(figsize=(8, 5), dpi=100)
         ax = fig.add_subplot(111)
-        ax.scatter(xaxis, yaxis, alpha=0.5, color='black')
+
+        if values["-SCAT-"] == True:
+            ax.scatter(xaxis, yaxis, alpha=0.5, color='black')
+
+        if values["-LINE-"] == True:
+            ax.plot(xaxis, yaxis, alpha=0.5, color='black')
+
         ax.set_title(values["-TITLE-"])
         ax.set_xlabel(values["-XLABEL-"])
         ax.set_ylabel(values["-YLABEL-"])
