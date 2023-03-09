@@ -52,31 +52,49 @@ row1 = [[sg.Text("Choose .csv"), sg.In(size=(50, 1), enable_events=True), sg.Fil
 
 col1 = [[sg.Text("X-axis variable:")],
         [sg.Text("Y-axis variable:")],
-        [sg.Text("Plot Style:")]]
+        [sg.Text("Plot Style:")],
+        [sg.Text("Plot size:")]]
 
 col2 = [[sg.Combo(values=list1, default_value='Select...', size=(30, 1),  enable_events=True, key="-XSELECT-")],
         [sg.Combo(values=list1, default_value='Select...', size=(30, 1),  enable_events=True, key="-YSELECT-")],
-        [sg.Radio("Scatter", "RADIO1", default=True, key="-SCAT-"), sg.Radio("Line", "RADIO1", key="-LINE-")]]
+        [sg.Radio("Scatter", "RADIO1", default=True, key="-SCAT-"), sg.Radio("Line", "RADIO1", key="-LINE-")],
+        [sg.Text("X:"), sg.In(size=(4, 1), key="-XSIZE-", default_text='7'), sg.Text("Y:"), sg.In(size=(4, 1), key="-YSIZE-", default_text='3')]]
 
 col3 = [[sg.Text("Plot title:")],
         [sg.Text("X-axis label:")],
-        [sg.Text("Y-axis label:")]]
+        [sg.Text("Y-axis label:")],
+        [sg.Text("Axis min/max:")]]
 
-col4 = [[sg.In(size=(30, 1), enable_events=True, default_text="Title", key="-TITLE-")],
-        [sg.In(size=(30, 1), enable_events=True, default_text="X-axis", key="-XLABEL-")],
-        [sg.In(size=(30, 1), enable_events=True, default_text="Y-axis", key="-YLABEL-")]]
+col4 = [[sg.In(size=(35, 1), enable_events=True, default_text="Title", key="-TITLE-")],
+        [sg.In(size=(35, 1), enable_events=True, default_text="X-axis", key="-XLABEL-")],
+        [sg.In(size=(35, 1), enable_events=True, default_text="Y-axis", key="-YLABEL-")],
+        [sg.Text("Y:"), sg.In(size=(4, 1), key="-YMIN-"), sg.In(size=(4, 1), key="-YMAX-"), sg.Text("X:"), sg.In(size=(4, 1), key="-XMIN-"), sg.In(size=(4, 1), key="-XMAX-")]]
 
-row2 = [[sg.Button("Create Plot"), sg.Button("Linear Fit")]]
+
+col5 = [[sg.Text("Point size:")],
+        [sg.Text("Color:")],
+        [sg.Text("Alpha:")],
+        [sg.Text("Line/pt style:")]]
+
+col6 = [[sg.Combo(values=[1,2,3,4,5,6,7,8,9,10], size=(8,1), key="-PTSIZE-", default_value=10)],
+        [sg.InputCombo(values=['C0', 'C1', 'C2', 'C3', 'r', 'g', 'b', 'k'], size=(8,1), key="-COLOR-", default_value='C0')],
+        [sg.Combo(values=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], size=(8,1), key="-ALPHA-", default_value=0.5)],
+        [sg.Combo(values = [], size=(8, 1), key="-STYLE-")]]
+
+row2 = [[sg.Text("Options:"), sg.Button("Create Plot"), sg.Button("Linear Fit")]]
+
+
 #sg.In(size=(50, 1), enable_events=True), sg.FolderBrowse(key="-SAVE-"), sg.Button("Save figure")
 
 out = [[sg.Canvas(key='-CANVAS-')]]
 
 layout = [[sg.Column(row1, element_justification='l')],
-          [sg.Column(col1, element_justification='l'), sg.Column(col2, element_justification='l'), sg.Column(col3, element_justification='l'), sg.Column(col4, element_justification='l')],
+          [sg.Column(col1, element_justification='l'), sg.Column(col2, element_justification='l'), sg.Column(col3, element_justification='l'), sg.Column(col4, element_justification='l'), sg.Column(col5, element_justification='l'), sg.Column(col6, element_justification='l')],
+          [sg.HSeparator()],
           [row2],
           [out]]
 
-window = sg.Window("Plot Tool", layout, size=(900,700))
+window = sg.Window("Plot Tool", layout, size=(900, 700))
 
 fig_canvas_agg = None
 
@@ -92,32 +110,58 @@ while True:
         window.find_element("-XSELECT-").update(values=list1)
         window.find_element("-YSELECT-").update(values=list1)
 
-    if event == "Create Plot":
-        if fig_canvas_agg is not None:
-            delete_fig_agg(fig_canvas_agg)
+    if values["-SCAT-"] == True:
+        window["-STYLE-"].update(values=['o', 's', 'D', '+'])
 
-        xaxis = l[values["-XSELECT-"]]
-        yaxis = l[values["-YSELECT-"]]
+        if event == "Create Plot":
+            if fig_canvas_agg is not None:
+                delete_fig_agg(fig_canvas_agg)
 
-        fig = plt.figure(figsize=(8, 5), dpi=100)
-        ax = fig.add_subplot(111)
+            xaxis = l[values["-XSELECT-"]]
+            yaxis = l[values["-YSELECT-"]]
 
-        if values["-SCAT-"] == True:
-            ax.scatter(xaxis, yaxis, alpha=0.5, color='black')
-            #if event == "Linear Fit":
-                #scipy.curve fit whatever
-                #plt.plot(linex liney)
+            fig = plt.figure(figsize=(int(values["-XSIZE-"]), int(values["-YSIZE-"])), dpi=200)
+            ax = fig.add_subplot(111)
 
-        if values["-LINE-"] == True:
-            ax.plot(xaxis, yaxis, alpha=0.5, )
+            ax.scatter(xaxis, yaxis, alpha=values["-ALPHA-"], color=values["-COLOR-"], s=int(values["-PTSIZE-"]))
+            ax.set_title(values["-TITLE-"])
+            ax.set_xlabel(values["-XLABEL-"])
+            ax.set_ylabel(values["-YLABEL-"])
+            ax.tick_params(axis='both', direction='in')
+            if values["-YMIN-"] and values["-YMAX-"] is not None:
+                ax.set_ylim([float(values["-YMIN-"]), float(values["-YMAX-"])])
+            if values["-XMIN-"] and values["-XMAX-"] is not None:
+                ax.set_xlim([float(values["-XMIN-"]), float(values["-XMAX-"])])
+            plt.tight_layout()
+            plt.show()
 
-        ax.set_title(values["-TITLE-"])
-        ax.set_xlabel(values["-XLABEL-"])
-        ax.set_ylabel(values["-YLABEL-"])
-        ax.tick_params(axis='both', direction='in')
+            fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
+            window.find_element("-CANVAS-").update()
 
-        fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
-        window.find_element("-CANVAS-").update()
+
+    if values["-LINE-"] == True:
+        window["-STYLE-"].update(values=['-', ':'])
+
+        if event == "Create Plot":
+            if fig_canvas_agg is not None:
+                delete_fig_agg(fig_canvas_agg)
+
+            xaxis = l[values["-XSELECT-"]]
+            yaxis = l[values["-YSELECT-"]]
+
+            fig = plt.figure(figsize=(8, 5), dpi=100)
+            ax = fig.add_subplot(111)
+
+            ax.plot(xaxis, yaxis, alpha=int(values["-ALPHA"]), color=values["-COLOR-"], linestyle=values["-PTSIZE-"])
+            ax.set_title(values["-TITLE-"])
+            ax.set_xlabel(values["-XLABEL-"])
+            ax.set_ylabel(values["-YLABEL-"])
+            ax.tick_params(axis='both', direction='in')
+            plt.tight_layout()
+            plt.show()
+
+            fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
+            window.find_element("-CANVAS-").update()
 
     elif event == "OK" or event == sg.WIN_CLOSED:
         break
