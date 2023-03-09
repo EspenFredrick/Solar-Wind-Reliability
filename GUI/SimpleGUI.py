@@ -49,6 +49,7 @@ sg.theme("Default 1")
 row1 = [[sg.Text("Choose .csv"), sg.In(size=(50, 1), enable_events=True), sg.FileBrowse(key="-CSV-"), sg.Button("Submit")],
         [sg.Text("Load ~/path/to/file.csv", key="-LOADED-")]]
 
+
 col1 = [[sg.Text("X-axis variable:")],
         [sg.Text("Y-axis variable:")],
         [sg.Text("Plot Style:")]]
@@ -65,14 +66,14 @@ col4 = [[sg.In(size=(30, 1), enable_events=True, default_text="Title", key="-TIT
         [sg.In(size=(30, 1), enable_events=True, default_text="X-axis", key="-XLABEL-")],
         [sg.In(size=(30, 1), enable_events=True, default_text="Y-axis", key="-YLABEL-")]]
 
-plotbtn = [[sg.Button("Create Plot")]]
+row2 = [[sg.Button("Create Plot"), sg.Button("Linear Fit")]]
 #sg.In(size=(50, 1), enable_events=True), sg.FolderBrowse(key="-SAVE-"), sg.Button("Save figure")
 
 out = [[sg.Canvas(key='-CANVAS-')]]
 
 layout = [[sg.Column(row1, element_justification='l')],
           [sg.Column(col1, element_justification='l'), sg.Column(col2, element_justification='l'), sg.Column(col3, element_justification='l'), sg.Column(col4, element_justification='l')],
-          [plotbtn],
+          [row2],
           [out]]
 
 window = sg.Window("Plot Tool", layout, size=(900,700))
@@ -103,9 +104,12 @@ while True:
 
         if values["-SCAT-"] == True:
             ax.scatter(xaxis, yaxis, alpha=0.5, color='black')
+            #if event == "Linear Fit":
+                #scipy.curve fit whatever
+                #plt.plot(linex liney)
 
         if values["-LINE-"] == True:
-            ax.plot(xaxis, yaxis, alpha=0.5, color='black')
+            ax.plot(xaxis, yaxis, alpha=0.5, )
 
         ax.set_title(values["-TITLE-"])
         ax.set_xlabel(values["-XLABEL-"])
