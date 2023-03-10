@@ -2,6 +2,8 @@ import PySimpleGUI as sg
 import csv
 import os.path
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib.ticker import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 from scipy.optimize import curve_fit
@@ -24,7 +26,10 @@ def open_csv(file):
                 if ':' in str(r[i]):
                     params[j].append(dt.strptime(r[i], '%Y-%m-%d %H:%M:%S'))
                 else:
-                    params[j].append(np.float64(r[i]))
+                    if r[i] == 0.0:
+                        r[i] = "NaN"
+                    params[j].append(float(r[i]))
+
 
     return params
 
@@ -43,6 +48,7 @@ def linear(x, m ,b):
 
 #-----------------------------------------------------------------------
 list1 = []
+
 
 sg.theme("Default 1")
 
@@ -74,14 +80,14 @@ col4 = [[sg.In(size=(35, 1), enable_events=True, default_text="Title", key="-TIT
 col5 = [[sg.Text("Point size:")],
         [sg.Text("Color:")],
         [sg.Text("Alpha:")],
-        [sg.Text("Line/pt style:")]]
+        [sg.Text("Legend:")]]
 
 col6 = [[sg.Combo(values=[1,2,3,4,5,6,7,8,9,10], size=(8,1), key="-PTSIZE-", default_value=10)],
         [sg.InputCombo(values=['C0', 'C1', 'C2', 'C3', 'r', 'g', 'b', 'k'], size=(8,1), key="-COLOR-", default_value='C0')],
         [sg.Combo(values=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1], size=(8,1), key="-ALPHA-", default_value=0.5)],
-        [sg.Combo(values = [], size=(8, 1), key="-STYLE-")]]
+        [sg.Input(size=(8, 1), key="-LEG-")]]
 
-row2 = [[sg.Text("Options:"), sg.Button("Create Plot"), sg.Button("Linear Fit")]]
+row2 = [[sg.Text("Options:"), sg.Button("Create Plot"), sg.Button("Linear Fit"), sg.Radio("Clear plot", "KEEPCLEAR", key="-CLEAR-", default=True), sg.Radio("Persistent plot", "KEEPCLEAR", key="-KEEP-")]]
 
 
 #sg.In(size=(50, 1), enable_events=True), sg.FolderBrowse(key="-SAVE-"), sg.Button("Save figure")
@@ -98,6 +104,11 @@ window = sg.Window("Plot Tool", layout, size=(900, 700))
 
 fig_canvas_agg = None
 
+xaxis = []
+yaxis = []
+colors = []
+legend = []
+
 while True:
     event, values = window.read()
     if event == "Submit":
@@ -111,19 +122,27 @@ while True:
         window.find_element("-YSELECT-").update(values=list1)
 
     if values["-SCAT-"] == True:
-        window["-STYLE-"].update(values=['o', 's', 'D', '+'])
 
         if event == "Create Plot":
+
+            if values["-KEEP-"] == False:
+                xaxis = []
+                yaxis = []
+                colors = []
+
             if fig_canvas_agg is not None:
                 delete_fig_agg(fig_canvas_agg)
 
-            xaxis = l[values["-XSELECT-"]]
-            yaxis = l[values["-YSELECT-"]]
+            xaxis.append(l[values["-XSELECT-"]])
+            yaxis.append(l[values["-YSELECT-"]])
+            colors.append(values["-COLOR-"])
+            legend.append(values["-LEG-"])
 
             fig = plt.figure(figsize=(int(values["-XSIZE-"]), int(values["-YSIZE-"])), dpi=200)
             ax = fig.add_subplot(111)
 
-            ax.scatter(xaxis, yaxis, alpha=values["-ALPHA-"], color=values["-COLOR-"], s=int(values["-PTSIZE-"]))
+            for i in range(len(xaxis)):
+                ax.scatter(xaxis[i], yaxis[i], alpha=values["-ALPHA-"], color=colors[i], s=int(values["-PTSIZE-"]))
             ax.set_title(values["-TITLE-"])
             ax.set_xlabel(values["-XLABEL-"])
             ax.set_ylabel(values["-YLABEL-"])
@@ -140,23 +159,43 @@ while True:
 
 
     if values["-LINE-"] == True:
-        window["-STYLE-"].update(values=['-', ':'])
 
         if event == "Create Plot":
+
+            if values["-KEEP-"] == False:
+                xaxis = []
+                yaxis = []
+                colors = []
+
             if fig_canvas_agg is not None:
                 delete_fig_agg(fig_canvas_agg)
 
-            xaxis = l[values["-XSELECT-"]]
-            yaxis = l[values["-YSELECT-"]]
 
             fig = plt.figure(figsize=(8, 5), dpi=100)
             ax = fig.add_subplot(111)
 
-            ax.plot(xaxis, yaxis, alpha=int(values["-ALPHA"]), color=values["-COLOR-"], linestyle=values["-PTSIZE-"])
+            if len(xaxis)==0:
+                xaxis.append(l[values["-XSELECT-"]])
+                yaxis.append(l[values["-YSELECT-"]])
+                colors.append(values["-COLOR-"])
+                legend.append(values["-LEG-"])
+            elif l[values["-XSELECT-"]] != xaxis[len(xaxis)-1] and l[values["-YSELECT-"]] != yaxis[len(yaxis)-1]:
+                xaxis.append(l[values["-XSELECT-"]])
+                yaxis.append(l[values["-YSELECT-"]])
+                colors.append(values["-COLOR-"])
+                legend.append(values["-LEG-"])
+
+            for i in range(len(xaxis)):
+                ax.plot(xaxis[i], yaxis[i], color=colors[i], label=str(legend[i]))
             ax.set_title(values["-TITLE-"])
             ax.set_xlabel(values["-XLABEL-"])
             ax.set_ylabel(values["-YLABEL-"])
             ax.tick_params(axis='both', direction='in')
+            if values["-XSELECT-"] == 'Time':
+                plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
+                plt.gca().xaxis.set_major_locator(mdates.MinuteLocator(interval=10))
+                plt.gcf().autofmt_xdate()
+            ax.legend(loc='upper left')
             plt.tight_layout()
             plt.show()
 
