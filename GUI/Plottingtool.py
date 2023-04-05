@@ -1,3 +1,5 @@
+import datetime
+
 import PySimpleGUI as sg
 import csv
 import os.path
@@ -162,10 +164,11 @@ while True:
 
         if event == "Create Plot":
 
-            if values["-KEEP-"] == False:
+            if values["-CLEAR-"] == True:
                 xaxis = []
                 yaxis = []
                 colors = []
+                legend = []
 
             if fig_canvas_agg is not None:
                 delete_fig_agg(fig_canvas_agg)
@@ -186,16 +189,25 @@ while True:
                 legend.append(values["-LEG-"])
 
             for i in range(len(xaxis)):
-                ax.plot(xaxis[i], yaxis[i], color=colors[i], label=str(legend[i]))
+                ax.plot(xaxis[i], yaxis[i], color=colors[i], label=legend[i])
             ax.set_title(values["-TITLE-"])
             ax.set_xlabel(values["-XLABEL-"])
             ax.set_ylabel(values["-YLABEL-"])
             ax.tick_params(axis='both', direction='in')
+            if values["-YMIN-"] and values["-YMAX-"] is not None:
+                ax.set_ylim([values["-YMIN-"], values["-YMAX-"]])
+            if values["-XMIN-"] and values["-XMAX-"] is not None:
+                #ax.set_xlim([values["-XMIN-"], values["-XMAX-"]])
+                ax.set_xlim([datetime.datetime(2014, 4, 5, 20, 0), datetime.datetime(2014, 4, 5, 21, 0)])
+            else:
+                ax.autoscale()
             if values["-XSELECT-"] == 'Time':
                 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
                 plt.gca().xaxis.set_major_locator(mdates.MinuteLocator(interval=10))
                 plt.gcf().autofmt_xdate()
+            print(legend)
             ax.legend(loc='upper left')
+
             plt.tight_layout()
             plt.show()
 
