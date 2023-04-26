@@ -10,7 +10,7 @@ def get_omni(start, stop, fixed):
     if fixed:
         start = start+dt.timedelta(minutes=30)
 
-    trange = [start.strftime("%Y-%m-%d/%H:%M:%S"), stop.strftime("%Y-%m-%d/%H:%M:%S")] #Timeseries should be in the format [pd.Timestamp, pd.Timestamp]
+    trange = [start.strftime("%Y-%m-%d/%H:%M:%S"), (stop-dt.timedelta(minutes=1)).strftime("%Y-%m-%d/%H:%M:%S")] #Timeseries should be in the format [pd.Timestamp, pd.Timestamp]
     omni_import = pyspedas.omni.data(trange=trange, datatype='1min', level='hro2', time_clip=True)
 
     omni = {'Time': get_data('IMF')[0], 'BX_GSE': get_data('BX_GSE')[1], 'BY_GSE': get_data('BY_GSE')[1], 'BZ_GSE': get_data('BZ_GSE')[1], 'Vx': get_data('Vx')[1], 'Vy': get_data('Vy')[1], 'Vz': get_data('Vz')[1], 'proton_density': get_data('proton_density')[1], 'T': get_data('T')[1]}
