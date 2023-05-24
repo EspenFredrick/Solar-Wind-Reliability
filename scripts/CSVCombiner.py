@@ -19,12 +19,12 @@
 import pandas as pd
 import os
 
-files = [f for f in os.listdir("../metadata/output-data") if os.path.isfile(os.path.join("../metadata/output-data", f)) and f.endswith(".csv")]
+files = [f for f in os.listdir("../output-data/hourly-correlations/") if os.path.isfile(os.path.join("../output-data/hourly-correlations/", f)) and f.endswith(".csv")]
 
 frame = []
 for fileName in files:
-    print(os.path.join("../metadata/output-data", fileName))
-    frm = pd.read_csv(os.path.join("../metadata/output-data", fileName), delimiter=',', header=0, index_col=0)
+    print(os.path.join("../output-data/hourly-correlations", fileName))
+    frm = pd.read_csv(os.path.join("../output-data/hourly-correlations", fileName), delimiter=',', header=0, index_col=0)
     frame.append(frm)
 df = pd.concat(frame)
-df.to_csv('../metadata/MergedEvents.csv')
+df.to_csv('../output-data/MergedEvents.csv')
