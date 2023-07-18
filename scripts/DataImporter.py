@@ -60,5 +60,5 @@ for event in range(len(events['time_start'])):
     sat1.reset_index(inplace=True)
     sat2.reset_index(inplace=True)
 
-    sat1.to_csv('../output-data/'+sat1_name+'/'+sat1_name+'_'+events['time_start'][event].strftime("%Y-%m-%d_%H-%M")+'.csv')
-    sat2.to_csv('../output-data/'+sat2_name+'/'+sat2_name+'_'+events['time_start'][event].strftime("%Y-%m-%d_%H-%M")+'.csv')
+    sat1.to_csv('../output-data/GSE/'+sat1_name+'/'+sat1_name+'_'+events['time_start'][event].strftime("%Y-%m-%d_%H-%M")+'.csv')
+    sat2.to_csv('../output-data/GSE/'+sat2_name+'/'+sat2_name+'_'+events['time_start'][event].strftime("%Y-%m-%d_%H-%M")+'.csv')
