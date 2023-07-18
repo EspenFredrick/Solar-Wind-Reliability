@@ -4,18 +4,30 @@ import pandas as pd
 from scipy.stats import pearsonr, spearmanr, kendalltau
 import os
 
+# Mean Absolute Percent Error (MAPE) function
 def meanAbsPercErr(artemis, omni):
     #m = (1/60) * (np.average([((a-o)/a) for o, a in zip(omni.to_numpy(), artemis.to_numpy())]))
     m=1
     return m
+
+# Function to create the scatter plots for each metric
 def scatterplot(ax, x, y):
     ax.set_ylim(-1,1)
     ax.set_xlim(0, 30)
     ax.hlines(0, 0, 30, color='black', linestyle='dashed')
+    ax.set_xlabel('Time Shift (min)')
+    ax.set_ylabel('Correlation Value')
     ax.scatter(x, y)
-    plt.suptitle('Comparison of Correlation Metrics')
-    plt.tight_layout()
 
+# Function to create the line plots for each metric. This visualizes how they shift relative to another at peak correlation.
+def lineplot(ax, x, artemisLine, omniLine, unit):
+    ax.set_xlim(min(x), max(x))
+    ax.set_xlabel('Time UTC')
+    ax.set_ylabel(unit)
+    ax.plot(x, omniLine, label='OMNI')
+    ax.plot(x, artemisLine, label='Artemis')
+
+# Function to compute the correlation metrics.
 def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, tau=True, makePlots = True):
     numWindows = len(omni)-59
     windowCounter = 0
@@ -27,8 +39,9 @@ def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, t
         aStart = (artemis.loc[artemis['Time'] == omni['Time'][n]]).index[0]
         aStop = (artemis.loc[artemis['Time'] == omni['Time'][n + 59]]).index[0]
         keys = ['BX_GSE', 'BY_GSE', 'BZ_GSE', 'Vx', 'Vy', 'Vz', 'proton_density', 'T']
+        units = [r'$B_x$ (nT)', r'$B_y$ (nT)', r'$B_z$ (nT)', r'$V_x$ (km/s)', r'$V_y$ (km/s)', r'$V_z$ (km/s)', r'Density ($cm^{-3}$)', 'Temperature (K)']
 
-        for k in keys:
+        for k, u in zip(keys, units):
             rStore = []
             rhoStore = []
             tauStore = []
@@ -51,10 +64,16 @@ def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, t
                 else:
                     maxes.extend([max(corrs[1:]), corrs.index(max(corrs[1:]))])
 
-            fig, ((p1, r1, t1, m1), (p2, r2, t2, m2)) = plt.subplots(nrows=2, ncols=4, figsize=(35,8))
-            for axs, vars in zip([p1, r1, t1, m1],[rStore, rhoStore, tauStore, mStore]):
+            fig, ((p1, r1, t1, m1), (p2, r2, t2, m2)) = plt.subplots(nrows=2, ncols=4, figsize=(35,9))
+            for axs, vars, maxes in zip([p1, r1, t1, m1],[rStore, rhoStore, tauStore, mStore], [rMax, rhoMax, tauMax, mMax]):
                 scatterplot(axs, np.arange(0, 31, 1), vars)
+                axs.scatter(maxes[1], maxes[0], color='red')
+                axs.vlines(maxes[1], 0, maxes[0], color='red', linestyle='dashed')
+            for axs2, maxes in zip([p2, r2, t2, m2], [rMax, rhoMax, tauMax, mMax]):
+                lineplot(axs2, omni['Time'][n:n+59], omni[k][n:n+59], artemis[k][aStart-maxes[1]:aStop-maxes[1]], u)
 
+            plt.suptitle('Comparison of Correlation Metrics')
+            plt.tight_layout()
             if os.path.exists(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/correlation-plots/{}/{}/'.format(omni['Time'][n].strftime('%Y-%m-%d'), k))):
                 plt.savefig(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/correlation-plots/{}/{}/{}.png'.format(omni['Time'][n].strftime('%Y-%m-%d'), k, omni['Time'][n].strftime('%H-%M'))), dpi=300)
             else:
