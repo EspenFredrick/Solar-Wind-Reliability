@@ -7,9 +7,13 @@ from scipy.stats import pearsonr, spearmanr, kendalltau
 import os
 
 # Mean Absolute Percent Error (MAPE) function
-def meanAbsPercErr(artemis, omni):
-    #m = (1/60) * (np.average([((a-o)/a) for o, a in zip(omni.to_numpy(), artemis.to_numpy())]))
-    m=1
+def meanAbsPercErr(artemis, omni, key):
+    if any([((a - o)/a) for o, a in zip(omni, artemis)]) == np.nan:
+        print('NaN encountered in key {}'.format(key))
+    else:
+        print('No NaN found in {}'.format(key))
+    #m = (1/60) * (np.nanmean([((a - o)/a) for o, a in zip(omni, artemis)]))
+    m=0.5
     return m
 
 # Function to create the scatter plots for each metric
@@ -65,7 +69,7 @@ def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, t
                 rStore.append(pearsonr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])[0])
                 rhoStore.append(spearmanr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])[0])
                 tauStore.append(kendalltau(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])[0])
-                mStore.append(meanAbsPercErr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i]))
+                mStore.append(meanAbsPercErr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i], k))
 
             # Keep the largest positive value if some are positive, otherwise take most negative value
             # Store the maximum metric value in position 0, and the index at which it occurs (time shift) in position 1
@@ -76,7 +80,7 @@ def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, t
                     maxes.extend([max(corrs[1:]), corrs.index(max(corrs[1:]))])
 
             # Initialize the scatter plots and line plots. Top row are scatter plots, bottom row are line plots
-            fig, ((p1, r1, t1, m1), (p2, r2, t2, m2)) = plt.subplots(nrows=2, ncols=4, figsize=(25,6))
+            fig, ((p1, r1), (p2, r2), (t1, m1), (t2, m2)) = plt.subplots(nrows=4, ncols=2, figsize=(12,12))
 
             # Run the scatter plot and line plot functions to plot how the metric changes, and the overlapping series
             # Create a vertical line to the maximum metric value and highlight it red
