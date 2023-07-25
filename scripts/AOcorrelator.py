@@ -18,9 +18,9 @@ def correlate(artemis, omni, workingDir):
     numWindows = len(omni)-59 # Number of 1-hour blocks in the data set
 
     for k in keys:
-        for n in range(numWindows): # Loop over each block
-            print('Key {}: Computing window {} of {}...'.format(k, n+1, numWindows))
+        print('Key {}: Computing {} windows...'.format(k, numWindows))
 
+        for n in range(numWindows): # Loop over each block
         # Find the start and stop index in Artemis that matches the nth and n+59th window of Omni
             aStart = (artemis.loc[artemis['Time'] == omni['Time'][n]]).index[0]
             aStop = (artemis.loc[artemis['Time'] == omni['Time'][n+59]]).index[0]

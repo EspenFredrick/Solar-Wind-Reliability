@@ -15,7 +15,7 @@ def rootMeanSqErr(omni, artemis):
     return rmse
 
 def makeRatio(omni, artemis):
-    ratio = np.average([o/a for o, a in zip(omni, artemis)])
+    ratio = np.average([abs(o/a) for o, a in zip(omni, artemis)])
     return ratio
 
 # Function to create the scatter plots for each metric
