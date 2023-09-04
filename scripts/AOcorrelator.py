@@ -7,10 +7,11 @@ import os
 def corrMetrics(omni, artemis):
     mape = (1/60) * (np.sum([abs(((a - o)/a)) for o, a in zip(omni, artemis)]))
     rmse = np.sqrt(np.sum([((a - o)**2)/60 for o, a in zip(omni, artemis)]))
-    ratio = np.average([abs(o/a) for o, a in zip(omni, artemis)])
+    ratio = np.sqrt(np.average([((1-(o/a))**2) for o, a in zip(omni, artemis)]))
     return mape, rmse, ratio
 
-# Function to compute the correlation metrics.
+# Funct
+# ion to compute the correlation metrics.
 def correlate(artemis, omni, workingDir):
     # Variables to loop over and their respective units
     keys = ['BX_GSE', 'BY_GSE', 'BZ_GSE', 'Vx', 'Vy', 'Vz', 'proton_density', 'T']

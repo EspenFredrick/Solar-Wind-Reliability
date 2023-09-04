@@ -8,14 +8,15 @@ import os
 
 # Mean Absolute Percent Error (MAPE) function
 def meanAbsPercErr(omni, artemis):
-    m = (1/60) * (np.sum([np.abs(((a - o)/a)) for o, a in zip(omni, artemis)]))
+    m = (1/60) * (np.sum([abs(((a - o)/a)) for o, a in zip(omni, artemis)]))
     return m
 def rootMeanSqErr(omni, artemis):
     rmse = np.sqrt(np.sum([((a - o)**2)/60 for o, a in zip(omni, artemis)]))
     return rmse
 
 def makeRatio(omni, artemis):
-    ratio = np.average([abs(o/a) for o, a in zip(omni, artemis)])
+    ratio = np.average([(abs(o-a)/abs(a)) for o, a in zip(omni, artemis)])
+    #print([((abs(o)-abs(a))/abs(a)) for o, a in zip(omni, artemis)])
     return ratio
 
 # Function to create the scatter plots for each metric
@@ -37,7 +38,7 @@ def lineplot(ax, x, omniLine, artemisLine, unit):
     ax.plot(x, omniLine, label='OMNI')
     ax.plot(x, artemisLine, label='Artemis')
     ax.xaxis.set_minor_locator(AutoMinorLocator())
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+    ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter('%H:%M'))
     ax.legend(loc='lower right')
 
 # Function to compute the correlation metrics.
@@ -84,8 +85,8 @@ def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, t
                 tauStore.append(kendalltau(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])[0])
                 mStore.append(meanAbsPercErr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i]))
                 rmseStore.append(rootMeanSqErr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i]))
+                #print(k)
                 ratioStore.append(makeRatio(omni[k][n:n+59], artemis[k][aStart-i:aStop-i]))
-
             # Keep the largest positive value if some are positive, otherwise take most negative value
             # Store the maximum metric value in position 0, and the index at which it occurs (time shift) in position 1
             for corrs, maxes in zip([rStore, rhoStore, tauStore], [rMax, rhoMax, tauMax]):
@@ -106,10 +107,10 @@ def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, t
                 m1.set_ylim(0,2)
                 axs.scatter(maxes[1], maxes[0], color='red')
                 axs.vlines(maxes[1], -1, maxes[0], color='red', linestyle='dashed')
-                axs.text(.01, .99,'Max = {}'.format(round(maxes[0], 3)), ha = 'left', va = 'top', transform = axs.transAxes)
+                axs.text(.01, .99,'Max. = {}'.format(round(maxes[0], 3)), ha = 'left', va = 'top', transform = axs.transAxes)
                 axs.set_title(labels)
 
-            for axs, vars, mins, labels in zip([m1, rmse1, ratio1], [mStore, rmseStore, ratioStore], [mMin, rmseMin, ratioMin], ['MAPE', 'RMSE', 'Ratio']):
+            for axs, vars, mins, labels in zip([m1, rmse1, ratio1], [mStore, rmseStore, ratioStore], [mMin, rmseMin, ratioMin], ['MAPE', 'RMSE', 'Ratio (normalized to Artemis)']):
                 axs.set_ylim(0, max(vars)+1)
                 axs.set_xlim(0, 30)
                 axs.set_xlabel('Time Shift (min)')
@@ -117,7 +118,7 @@ def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, t
                 axs.scatter(np.arange(0, 31, 1), vars)
                 axs.scatter(mins[1], mins[0], color='red')
                 axs.vlines(mins[1], 0, mins[0], color='red', linestyle='dashed')
-                axs.text(.01, .99, 'Max = {}'.format(round(mins[0], 3)), ha='left', va='top', transform=axs.transAxes)
+                axs.text(.01, .99, 'Min. = {}'.format(round(mins[0], 3)), ha='left', va='top', transform=axs.transAxes)
                 axs.xaxis.set_minor_locator(MultipleLocator(1))
                 axs.set_title(labels)
 
