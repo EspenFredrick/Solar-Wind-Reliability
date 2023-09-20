@@ -11,13 +11,16 @@ def probDistGraph(series):
     for b in np.arange(1, -0.1, -0.1):
         counter = 0
         for s in series:
-            if s > b:
+            if s < b:
                 counter = counter + 1
         binHeights.append(counter)
     print(binHeights)
     for h in range(len(binHeights)):
         binHeights[h] = 100*(binHeights[h]/len(series))
-    plt.bar(['>1', '>0.9', '>0.8', '>0.7', '>0.6', '>0.5', '>0.4', '>0.3', '>0.2', '>0.1', '>0'], binHeights)
+    plt.bar(['<1', '<0.9', '<0.8', '<0.7', '<0.6', '<0.5', '<0.4', '<0.3', '<0.2', '<0.1', '<0'], binHeights)
+    plt.ylim(0,100)
+    plt.ylabel('% Occurance')
+    plt.xlabel('Bin')
 
 #-----------------------------------------------------------------------------------------------------------------------
 fDir = input('Enter the path to the project directory: ')
@@ -27,7 +30,7 @@ for n, v in enumerate(vars):
     print('{} - {}'.format(n, v))
 varToPlot = input('Please enter variable to plot or specify "all" to generate distribution plots for all variables: ')
 
-corrs = ['R', 'Rho', 'Tau', 'MAPE', 'RMSE', 'Ratio']
+corrs = ['R', 'Rho', 'Tau', 'MAPE', 'RMSE', 'Ratio', 'RMSE_Artemis', 'RMSE_Omni', 'Avg_RMSE']
 for n, c in enumerate(corrs):
     print('{} - {}'.format(n, c))
 corrToPlot = input('Please enter the metric to plot or specify "all" to generate distribution plots for for all metrics: ')

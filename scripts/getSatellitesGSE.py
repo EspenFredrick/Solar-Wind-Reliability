@@ -13,11 +13,12 @@ def get_omni(start, stop, fixed):
     trange = [start.strftime("%Y-%m-%d/%H:%M:%S"), (stop-dt.timedelta(minutes=1)).strftime("%Y-%m-%d/%H:%M:%S")] #Timeseries should be in the format [pd.Timestamp, pd.Timestamp]
     omni_import = pyspedas.omni.data(trange=trange, datatype='1min', level='hro2', time_clip=True)
 
-    omni = {'Time': get_data('IMF')[0], 'BX_GSE': get_data('BX_GSE')[1], 'BY_GSE': get_data('BY_GSE')[1], 'BZ_GSE': get_data('BZ_GSE')[1], 'Vx': get_data('Vx')[1], 'Vy': get_data('Vy')[1], 'Vz': get_data('Vz')[1], 'proton_density': get_data('proton_density')[1], 'T': get_data('T')[1]}
-    omni_data = pd.DataFrame(omni, columns=['Time', 'BX_GSE', 'BY_GSE', 'BZ_GSE', 'Vx', 'Vy', 'Vz', 'proton_density', 'T']).replace(to_replace=[999.990, 9999.99, 99999.9, 9999999], value=np.nan)
+    omni = {'Time': get_data('IMF')[0], 'BX_GSE': get_data('BX_GSE')[1], 'BY_GSE': get_data('BY_GSE')[1], 'BZ_GSE': get_data('BZ_GSE')[1], 'Vx': get_data('Vx')[1], 'Vy': get_data('Vy')[1], 'Vz': get_data('Vz')[1], 'proton_density': get_data('proton_density')[1], 'T': get_data('T')[1], 'Xpos': get_data('x')[1]}
+    omni_data = pd.DataFrame(omni, columns=['Time', 'BX_GSE', 'BY_GSE', 'BZ_GSE', 'Vx', 'Vy', 'Vz', 'proton_density', 'T', 'Xpos']).replace(to_replace=[999.990, 9999.99, 99999.9, 9999999], value=np.nan)
     omni_data['Time'] = pd.to_datetime(omni_data['Time'], unit='s')
 
     omni_data = omni_data.set_index('Time').interpolate(method='linear')
+    omni_data['Xpos'] = omni_data['Xpos'] * 6378.14
 
     return omni_data
 
@@ -56,6 +57,7 @@ def get_themis(start, stop, probe, fixed):
     trange = [start.strftime("%Y-%m-%d/%H:%M:%S"), stop.strftime("%Y-%m-%d/%H:%M:%S")] #Timeseries should be in the format [pd.Timestamp, pd.Timestamp]
     themis_fgm_import = pyspedas.themis.fgm(trange=trange, probe=probe, time_clip=True, varnames='th'+probe+'_fgs_gse')
     themis_esa_import = pyspedas.themis.esa(trange=trange, probe=probe, time_clip=True, varnames=['th'+probe+'_peif_velocity_gse', 'th'+probe+'_peif_density', 'th'+probe+'_peif_avgtemp'])
+    themis_stt_import = pyspedas.themis.state(trange=trange, probe=probe, time_clip=True, varnames='th'+probe+'_pos_gse')
 
     #---THEMIS FGM data manipulation-------------------------------------------------------------------------------------------------------
     fgm = {'Time': get_data('th'+probe+'_fgs_gse')[0], 'BX_GSE': get_data('th'+probe+'_fgs_gse')[1][:,0], 'BY_GSE': get_data('th'+probe+'_fgs_gse')[1][:,1], 'BZ_GSE': get_data('th'+probe+'_fgs_gse')[1][:,2]}
@@ -75,7 +77,14 @@ def get_themis(start, stop, probe, fixed):
     themis_esa_data = themis_esa_data.reindex(themis_fgm_data.index)
     #--------------------------------------------------------------------------------------------------------------------------------------
 
-    return themis_fgm_data, themis_esa_data
+    #---THEMIS STATE data manipulation-------------------------------------------------------------------------------------------------------
+    state = {'Time': get_data('th'+probe+'_pos_gse')[0], 'Xpos': get_data('th'+probe+'_pos_gse')[1][:,0]}
+    themis_stt_data = pd.DataFrame(state, columns=['Time', 'Xpos']).replace(to_replace=[999.990, 9999.99, 99999.9], value=np.nan)
+    themis_stt_data['Time'] = pd.to_datetime(themis_stt_data['Time'], unit='s')
+
+    themis_stt_data = themis_stt_data.set_index('Time').resample('T').mean().interpolate(method='linear')
+
+    return themis_fgm_data, themis_esa_data, themis_stt_data
 
 #---------------------------------------------------------------------------------------------------------------------------
 #%%

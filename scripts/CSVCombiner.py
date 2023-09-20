@@ -30,19 +30,25 @@ varToMerge = input('Please enter variable to merge or specify "all" to generate 
 
 if varToMerge == 'all':
     print('placeholder')
-    #stuff
+
 elif int(varToMerge) < len(vars):
+    dirWithFiles = os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/2011-10-24_22-30', vars[int(varToMerge)])
+    fileList = sorted(filter(lambda x: os.path.isfile(os.path.join(dirWithFiles, x)), os.listdir(dirWithFiles)))
+    for nums, files in enumerate(fileList):
+        print('{} - {}'.format(nums, files))
+    toCombine = input('Please enter the number of the file you wish to combine. ')
+
     frame = []
     for folderName in folders:
         if not folderName.startswith('.') and folderName != 'merged':
-
-            file = pd.read_csv(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations', folderName, vars[int(varToMerge)], 'output.csv'), delimiter=',', header=0, index_col=0)
+            print(folderName)
+            file = pd.read_csv(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations', folderName, vars[int(varToMerge)], fileList[int(toCombine)]), delimiter=',', header=0, index_col=0)
             frame.append(file)
     df = pd.concat(frame)
     if os.path.exists(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/merged', vars[int(varToMerge)])):
-        df.to_csv(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/merged', vars[int(varToMerge)], 'output.csv'))
+        df.to_csv(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/merged', vars[int(varToMerge)], 'output'+fileList[int(toCombine)]))
     else:
         os.makedirs(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/merged', vars[int(varToMerge)]))
-        df.to_csv(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/merged', vars[int(varToMerge)], 'output.csv'))
+        df.to_csv(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/merged', vars[int(varToMerge)], 'output'+fileList[int(toCombine)]))
 else:
     raise ValueError('Variable not in range or not "all".')

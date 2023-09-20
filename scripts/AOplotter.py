@@ -3,21 +3,27 @@ from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
-from scipy.stats import pearsonr, spearmanr, kendalltau
+from scipy.stats import pearsonr, linregress
 import os
 
-# Mean Absolute Percent Error (MAPE) function
-def meanAbsPercErr(omni, artemis):
-    m = (1/60) * (np.sum([abs(((a - o)/a)) for o, a in zip(omni, artemis)]))
-    return m
-def rootMeanSqErr(omni, artemis):
-    rmse = np.sqrt(np.sum([((a - o)**2)/60 for o, a in zip(omni, artemis)]))
-    return rmse
+# Find slope closest to _...
+def closestTo(inputList, val):
+  arr = np.asarray(inputList)
+  i = (np.abs(arr - val)).argmin()
+  return arr[i]
 
-def makeRatio(omni, artemis):
-    ratio = np.average([(abs(o-a)/abs(a)) for o, a in zip(omni, artemis)])
-    #print([((abs(o)-abs(a))/abs(a)) for o, a in zip(omni, artemis)])
-    return ratio
+# Correlation metrics
+def corrMetrics(omni, artemis):
+    mape = (1/60) * (np.sum([abs(((a - o)/a)) for o, a in zip(omni, artemis)]))
+    ratio = np.average([(abs(o - a) / abs(a)) for o, a in zip(omni, artemis)])
+    rmse = np.sqrt(np.sum([((a - o) ** 2) / 60 for o, a in zip(omni, artemis)]))
+    rmseArtemis = np.sqrt(np.sum([((a - o) ** 2) / (a ** 2) if a != 0 else 0 for o, a in zip(omni, artemis)]) / 60)
+    rmseOmni = np.sqrt(np.sum([((a - o) ** 2) / (o ** 2) if o != 0 else 0 for o, a in zip(omni, artemis)]) / 60)
+    rmseAverage = np.sqrt(np.sum([((a - o) ** 2) / (((a + o) / 2) ** 2) for o, a in zip(omni, artemis)]) / 60)
+
+    slope, intercept, rvalue, pvalue, stderr = linregress(artemis, omni)
+
+    return mape, ratio, rmse, rmseArtemis, rmseOmni, rmseAverage, slope
 
 # Function to create the scatter plots for each metric
 def scatterplot(ax, x, y):
@@ -42,7 +48,7 @@ def lineplot(ax, x, omniLine, artemisLine, unit):
     ax.legend(loc='lower right')
 
 # Function to compute the correlation metrics.
-def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, tau=True, makePlots = True):
+def correlate(artemis, omni, workingDir='/Volumes/Research'):
     numWindows = len(omni)-59 # Number of 1-hour blocks in the data set
 
     for n in range(numWindows): # Loop over each block
@@ -51,82 +57,87 @@ def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, t
         # Find the start and stop index in Artemis that matches the nth and n+59th window of Omni
         aStart = (artemis.loc[artemis['Time'] == omni['Time'][n]]).index[0]
         aStop = (artemis.loc[artemis['Time'] == omni['Time'][n+59]]).index[0]
-        # Debugging tool, uncomment to view start/stop values and indices
-        #print('Artemis start: {}, Artemis stop: {}'.format(artemis['Time'][aStart], artemis['Time'][aStop]))
-        #print('Index {} to {}'.format(aStart, aStop))
-        #print('Omni start: {}, Omni stop: {}'.format(omni['Time'][n], omni['Time'][n+59]))
-        #print('Index {} to {}'.format(n, n+59))
 
         # Variables to loop over and their respective units
         keys = ['BX_GSE', 'BY_GSE', 'BZ_GSE', 'Vx', 'Vy', 'Vz', 'proton_density', 'T']
         units = [r'$B_x$ (nT)', r'$B_y$ (nT)', r'$B_z$ (nT)', r'$V_x$ (km/s)', r'$V_y$ (km/s)', r'$V_z$ (km/s)', r'Density ($cm^{-3}$)', 'Temperature (K)']
 
         for k, u in zip(keys, units):
+            print('Key {}...'.format(k))
+
             # Initialize empty storage arrays for each metric
-            rStore = []
-            rhoStore = []
-            tauStore = []
-            mStore = []
-            rmseStore = []
+            pearsonStore = []
+            mapeStore = []
             ratioStore = []
+            rmseStore = []
+            artemisStore = []
+            omniStore = []
+            avgStore = []
+
+            slopeStore = []
 
             # Initialize arrays which store the maximum metric value and its index
-            rMax = []
-            rhoMax = []
-            tauMax = []
-            mMin = []
-            rmseMin = []
+            pearsonMax = []
+            mapeMin = []
             ratioMin = []
+            rmseMin = []
+            artemisMin = []
+            omniMin = []
+            avgMin = []
+
+            slopeClosestToOne = []
 
             # Slide Artemis 30 times (for a 30-minute shift) over the Omni set and append the metric to each array
             for i in range(31):
-                rStore.append(pearsonr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])[0])
-                rhoStore.append(spearmanr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])[0])
-                tauStore.append(kendalltau(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])[0])
-                mStore.append(meanAbsPercErr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i]))
-                rmseStore.append(rootMeanSqErr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i]))
-                #print(k)
-                ratioStore.append(makeRatio(omni[k][n:n+59], artemis[k][aStart-i:aStop-i]))
-            # Keep the largest positive value if some are positive, otherwise take most negative value
-            # Store the maximum metric value in position 0, and the index at which it occurs (time shift) in position 1
-            for corrs, maxes in zip([rStore, rhoStore, tauStore], [rMax, rhoMax, tauMax]):
-                if all(c < 0 for c in corrs[1:]):
-                    maxes.extend([max(corrs[1:], key=abs), corrs.index(max(corrs[1:], key=abs))])
-                else:
-                    maxes.extend([max(corrs[1:]), corrs.index(max(corrs[1:]))])
-            for corrs, mins in zip([mStore, rmseStore, ratioStore], [mMin, rmseMin, ratioMin]):
+                corrcoef = pearsonr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])[0]
+                mape, ratio, rmse, rmseArtemis, rmseOmni, rmseAverage, slopeInt = corrMetrics(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])
+
+                for vals, lists in zip([corrcoef, mape, ratio, rmse, rmseArtemis, rmseOmni, rmseAverage, slopeInt], [pearsonStore, mapeStore, ratioStore, rmseStore, artemisStore, omniStore, avgStore, slopeStore]):
+                    lists.append(vals)
+
+            # Store the maximum Pearson correlation coef. in position 0, and the index at which it occurs (time shift) in position 1
+            if all(c < 0 for c in pearsonStore[1:]):
+                pearsonMax.extend([max(pearsonStore[1:], key=abs), pearsonStore.index(max(pearsonStore[1:], key=abs))])
+            else:
+                pearsonMax.extend([max(pearsonStore[1:]), pearsonStore.index(max(pearsonStore[1:]))])
+
+            # Store the minimum values for the other correlations in position 0 and the index at which it occurs in position 1
+            for corrs, mins in zip([mapeStore, ratioStore, rmseStore, artemisStore, omniStore, avgStore], [mapeMin, ratioMin, rmseMin, artemisMin, omniMin, avgMin]):
                 mins.extend([min(corrs[1:]), corrs.index(min(corrs[1:]))])
 
+            #Store the slope closest to 1
+            slopeClosestToOne.extend([closestTo(slopeStore[1:], 1), slopeStore.index(closestTo(slopeStore[1:], 1))])
+
             # Initialize the scatter plots and line plots. Top row are scatter plots, bottom row are line plots
-            fig, ((p1, r1, t1), (p2, r2, t2), (m1, rmse1, ratio1), (m2, rmse2, ratio2)) = plt.subplots(nrows=4, ncols=3, figsize=(18,12))
+            fig, ((p1, m1, s1, r1), (p2, m2, s2, r2), (rmse1, rmseA1, rmseO1, rmseAvg1), (rmse2, rmseA2, rmseO2, rmseAvg2)) = plt.subplots(nrows=4, ncols=4, figsize=(18,10))
 
             # Run the scatter plot and function to plot how the metric changes
             # Create a vertical line to the maximum metric value and highlight it red
-            for axs, vars, maxes, labels in zip([p1, r1, t1],[rStore, rhoStore, tauStore], [rMax, rhoMax, tauMax], ['Pearson R', 'Spearman Rho', 'Kendall Tau']):
-                scatterplot(axs, np.arange(0, 31, 1), vars)
-                m1.set_ylim(0,2)
-                axs.scatter(maxes[1], maxes[0], color='red')
-                axs.vlines(maxes[1], -1, maxes[0], color='red', linestyle='dashed')
-                axs.text(.01, .99,'Max. = {}'.format(round(maxes[0], 3)), ha = 'left', va = 'top', transform = axs.transAxes)
-                axs.set_title(labels)
 
-            for axs, vars, mins, labels in zip([m1, rmse1, ratio1], [mStore, rmseStore, ratioStore], [mMin, rmseMin, ratioMin], ['MAPE', 'RMSE', 'Ratio (normalized to Artemis)']):
+            for axs, vars, minmax, labels in zip([p1, m1, s1, r1, rmse1, rmseA1, rmseO1, rmseAvg1], [pearsonStore, mapeStore, slopeStore, ratioStore, rmseStore, artemisStore, omniStore, avgStore], [pearsonMax, mapeMin, slopeClosestToOne, ratioMin, rmseMin, artemisMin, omniMin, avgMin], ['Pearson R', 'MAPE', 'Slope', 'Ratio (normalized to Artemis)', 'RMSE', 'RMSE Norm. Artemis', 'RMSE Norm. Omni', 'RMSE Norm. avg. Artemis/Omni']):
                 axs.set_ylim(0, max(vars)+1)
+                p1.set_ylim(-1, 1)
+                s1.set_ylim(-2, 2)
                 axs.set_xlim(0, 30)
                 axs.set_xlabel('Time Shift (min)')
                 axs.set_ylabel('Correlation Value')
                 axs.scatter(np.arange(0, 31, 1), vars)
-                axs.scatter(mins[1], mins[0], color='red')
-                axs.vlines(mins[1], 0, mins[0], color='red', linestyle='dashed')
-                axs.text(.01, .99, 'Min. = {}'.format(round(mins[0], 3)), ha='left', va='top', transform=axs.transAxes)
+                axs.scatter(minmax[1], minmax[0], color='red')
+                axs.vlines(minmax[1], -2, minmax[0], color='red', linestyle='dashed')
+                if axs == p1:
+                    axs.text(.01, .99, 'Max. = {}'.format(round(minmax[0], 3)), ha='left', va='top',transform=axs.transAxes)
+                elif axs == s1:
+                    axs.text(.01, .99, 'Slope closest to 1 = {}'.format(round(minmax[0], 3)), ha='left', va='top',transform=axs.transAxes)
+                else:
+                    axs.text(.01, .99, 'Min. = {}'.format(round(minmax[0], 3)), ha='left', va='top', transform=axs.transAxes)
                 axs.xaxis.set_minor_locator(MultipleLocator(1))
                 axs.set_title(labels)
 
             # Run the line plot function to plot how Artemis shifted by the time offset lines up
-            for axs2, maxes in zip([p2, r2, t2, m2, rmse2, ratio2], [rMax, rhoMax, tauMax, mMin, rmseMin, ratioMin]):
-                lineplot(axs2, omni['Time'][n:n+60], omni[k][n:n+60], artemis[k][aStart-maxes[1]:aStop-maxes[1]+1], u)
+            for axs2, minmax in zip([p2, m2, s2, r2, rmse2, rmseA2, rmseO2, rmseAvg2], [pearsonMax, mapeMin, slopeClosestToOne, ratioMin, rmseMin, artemisMin, omniMin, avgMin]):
+                lineplot(axs2, omni['Time'][n:n+60], omni[k][n:n+60], artemis[k][aStart-minmax[1]:aStop-minmax[1]+1], u)
                 axs2.set_title('Time Series Shift by Metric')
-                axs2.text(.01, .99, 'Shift = {} min.'.format(round(maxes[1], 3)), ha='left', va='top', transform=axs2.transAxes)
+                axs2.text(.01, .99, 'Shift = {} min.'.format(round(minmax[1], 3)), ha='left', va='top', transform=axs2.transAxes)
             plt.suptitle('Comparison of Correlation Metrics', fontsize=18)
             plt.tight_layout()
 
@@ -141,7 +152,8 @@ def correlate(artemis, omni, workingDir='/Volumes/Research', r=True, rho=True, t
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-projDir = input('Enter the path to the project directory: ')
+#projDir = input('Enter the path to the project directory: ')
+projDir = '/Volumes/Research'
 artemisDirectory = os.path.join(projDir, 'Solar-Wind-Reliability/output-data/GSE/Artemis/')
 omniDirectory = os.path.join(projDir, 'Solar-Wind-Reliability/output-data/GSE/Omni/')
 
