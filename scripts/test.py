@@ -36,19 +36,19 @@ elif int(varToPlot) < len(vars):
 
 
     fig, ax = plt.subplots(figsize=(9,7))
-    plt.hist(params[keys[int(varToHist)]], bins=np.arange(-5, 5.1, 0.1), edgecolor = "black")
-    ax.xaxis.set_major_locator(MultipleLocator(0.5))
+    plt.hist(params[keys[int(varToHist)]], bins=np.arange(-1, 2.1, 0.1), edgecolor = "black")
+    ax.xaxis.set_major_locator(MultipleLocator(0.2))
     ax.xaxis.set_minor_locator(MultipleLocator(0.1))
     for rect in ax.patches:
         height = rect.get_height()
         ax.annotate(f'{int(height)}', xy=(rect.get_x() + rect.get_width() / 2, height),
-                    xytext=(0, 5), textcoords='offset points', ha='center', va='bottom', fontsize=5)
+                    xytext=(0, 5), textcoords='offset points', ha='center', va='bottom', fontsize=8)
     plt.title('Occurrence of best-fit intercept between ARTEMIS and Omni in IMF Bz')
     plt.xlabel('Bin')
     plt.ylabel('Frequency (counts)')
 
-    plt.xlim(-5, 5)
-    plt.savefig(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/', vars[int(varToPlot)]+'-slopehist.png'), dpi=300)
+    plt.xlim(-1, 2)
+    plt.savefig(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/', vars[int(varToPlot)]+'-slope.png'), dpi=300)
     plt.show()
 
 else:
