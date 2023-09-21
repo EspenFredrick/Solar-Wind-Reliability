@@ -19,7 +19,8 @@
 import pandas as pd
 import os
 
-fDir = input('Enter the path to the project directory: ')
+#fDir = input('Enter the path to the project directory: ')
+fDir = '/Volumes/Research'
 folders = [f for f in os.listdir(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations'))]
 
 vars = ['BX_GSE', 'BY_GSE', 'BZ_GSE', 'Vx', 'Vy', 'Vz', 'proton_density', 'T']
