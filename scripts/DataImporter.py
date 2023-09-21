@@ -34,20 +34,20 @@ events['time_stop'] = pd.to_datetime(events['time_stop'])
 for event in range(len(events['time_start'])):
 
     if satellite1 == 'artemis':
-        artemis_fgm, artemis_esa = get_artemis(events['time_start'][event], events['time_stop'][event], fixed=False)
-        sat1 = pd.concat([artemis_fgm, artemis_esa], axis=1).interpolate(method='linear').fillna(method='bfill')
+        artemis_fgm, artemis_esa, artemis_stt = get_artemis(events['time_start'][event], events['time_stop'][event], fixed=False)
+        sat1 = pd.concat([artemis_fgm, artemis_esa, artemis_stt], axis=1).interpolate(method='linear').fillna(method='bfill')
         sat1_name = 'Artemis'
 
     elif satellite1 == 'themis' and satellite2 != 'themis':
-        themis_fgm, themis_esa = get_themis(events['time_start'][event], events['time_stop'][event], probe=events['THEMIS'][event], fixed=False)
-        sat1 = pd.concat([themis_fgm, themis_esa], axis=1).interpolate(method='linear').fillna(method='bfill')
+        themis_fgm, themis_esa, themis_stt = get_themis(events['time_start'][event], events['time_stop'][event], probe=events['THEMIS'][event], fixed=False)
+        sat1 = pd.concat([themis_fgm, themis_esa, themis_stt], axis=1).interpolate(method='linear').fillna(method='bfill')
         sat1_name = 'Themis'
 
     else:
         raise ValueError('String "{}" is not one of ("artemis", "themis")'.format(satellite1))
 
     if satellite2 == 'themis' and satellite1 != 'themis':
-        themis_fgm, themis_esa = get_themis(events['time_start'][event], events['time_stop'][event], probe=events['THEMIS'][event], fixed=True)
+        themis_fgm, themis_esa, themis_stt = get_themis(events['time_start'][event], events['time_stop'][event], probe=events['THEMIS'][event], fixed=True)
         sat2 = pd.concat([themis_fgm, themis_esa], axis=1).interpolate(method='linear').fillna(method='bfill')
         sat2_name = 'Themis'
     elif satellite2 == 'omni':

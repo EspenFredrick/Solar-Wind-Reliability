@@ -29,6 +29,7 @@ def get_artemis(start, stop, fixed):
     trange = [start.strftime("%Y-%m-%d/%H:%M:%S"), stop.strftime("%Y-%m-%d/%H:%M:%S")] #Timeseries should be in the format [pd.Timestamp, pd.Timestamp]
     artemis_fgm_import = pyspedas.themis.fgm(trange=trange, probe='b', time_clip=True, varnames='thb_fgs_gse')
     artemis_esa_import = pyspedas.themis.esa(trange=trange, probe='b', time_clip=True, varnames=['thb_peif_velocity_gse', 'thb_peif_density', 'thb_peif_avgtemp'])
+    artemis_stt_import = pyspedas.themis.state(trange=trange, probe='b', time_clip=True, varnames='thb_pos_gse')
 
     #---ARTEMIS FGM data manipulation-------------------------------------------------------------------------------------------------------
     fgm = {'Time': get_data('thb_fgs_gse')[0], 'BX_GSE': get_data('thb_fgs_gse')[1][:,0], 'BY_GSE': get_data('thb_fgs_gse')[1][:,1], 'BZ_GSE': get_data('thb_fgs_gse')[1][:,2]}
@@ -48,7 +49,14 @@ def get_artemis(start, stop, fixed):
     artemis_esa_data = artemis_esa_data.reindex(artemis_fgm_data.index)
     #---------------------------------------------------------------------------------------------------------------------------------------
 
-    return artemis_fgm_data, artemis_esa_data
+    #---ARTEMIS STATE data manipulation-------------------------------------------------------------------------------------------------------
+    state = {'Time': get_data('thb_pos_gse')[0], 'Xpos': get_data('thb_pos_gse')[1][:,0]}
+    artemis_stt_data = pd.DataFrame(state, columns=['Time', 'Xpos']).replace(to_replace=[999.990, 9999.99, 99999.9], value=np.nan)
+    artemis_stt_data['Time'] = pd.to_datetime(artemis_stt_data['Time'], unit='s')
+
+    artemis_stt_data = artemis_stt_data.set_index('Time').resample('T').mean().interpolate(method='linear')
+
+    return artemis_fgm_data, artemis_esa_data, artemis_stt_data
 
 def get_themis(start, stop, probe, fixed):
     if fixed:
