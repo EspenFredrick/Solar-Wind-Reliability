@@ -38,6 +38,8 @@ def correlate(artemis, omni, workingDir):
             aStart = (artemis.loc[artemis['Time'] == omni['Time'][n]]).index[0]
             aStop = (artemis.loc[artemis['Time'] == omni['Time'][n+59]]).index[0]
 
+            hourlyvelocity = np.average(omni['Vx'][n:n + 59])
+
             # Initialize empty storage arrays for each metric
             pearsonStore = []
             mapeStore = []
@@ -84,10 +86,10 @@ def correlate(artemis, omni, workingDir):
 
 
 
-            dataRows.append(np.concatenate(([omni['Time'][n]], [omni['Time'][n+59]], pearsonMax[0], slopeClosestToOne[0], slopeClosestToOne[2], mapeMin[0], ratioMin[0], rmseMin[0], artemisMin[0], omniMin[0], avgMin[0]), axis=None))
+            dataRows.append(np.concatenate(([omni['Time'][n]], [omni['Time'][n+59]], pearsonMax[0], slopeClosestToOne[0], slopeClosestToOne[2], mapeMin[0], ratioMin[0], rmseMin[0], artemisMin[0], omniMin[0], avgMin[0], hourlyvelocity), axis=None))
             offsetRows.append(np.concatenate(([omni['Time'][n]], [omni['Time'][n+59]], pearsonMax[1], slopeClosestToOne[1], mapeMin[1], ratioMin[1], rmseMin[1], artemisMin[1], omniMin[1], avgMin[1]), axis=None))
 
-        eventMetadata = pd.DataFrame(dataRows, columns=['Start', 'Stop','Pearson', 'Slope', 'Intercept', 'MAPE', 'Ratio', 'RMSE', 'RMSE_Artemis', 'RMSE_Omni', 'RMSE_Avg'])
+        eventMetadata = pd.DataFrame(dataRows, columns=['Start', 'Stop','Pearson', 'Slope', 'Intercept', 'MAPE', 'Ratio', 'RMSE', 'RMSE_Artemis', 'RMSE_Omni', 'RMSE_Avg', 'hourly-velocity'])
         eventTimeShifts = pd.DataFrame(offsetRows, columns=['Start', 'Stop','Pearson', 'Slope', 'MAPE', 'Ratio', 'RMSE', 'RMSE_Artemis', 'RMSE_Omni', 'RMSE_Avg'])
 
         if os.path.exists(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/'.format(omni['Time'][n].strftime('%Y-%m-%d_%H-%M'), k))):

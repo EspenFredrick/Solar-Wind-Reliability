@@ -34,21 +34,27 @@ elif int(varToPlot) < len(vars):
         print('{} - {}'.format(v, k))
     varToHist = input('Please enter the number of the parameter you wish to plot. ')
 
+    fastSW = []
+    for j in range(len(metricData['hourly-velocity'])):
+        if metricData['hourly-velocity'][j] <= -500:
+            fastSW.append(params[keys[int(varToHist)]][j])
+    print(fastSW)
 
-    fig, ax = plt.subplots(figsize=(9,7))
-    plt.hist(params[keys[int(varToHist)]], bins=np.arange(-1, 1.1, 0.1), edgecolor = "black")
+    fig, ax = plt.subplots(figsize=(9, 7))
+    # plt.hist(params[keys[int(varToHist)]], bins=np.arange(-1, 2.1, 0.1), edgecolor = "black")
+    plt.hist(fastSW, bins=np.arange(-1, 1.1, 0.1), edgecolor="black")
     ax.xaxis.set_major_locator(MultipleLocator(0.1))
-    #ax.xaxis.set_minor_locator(MultipleLocator(0.1))
+    ax.xaxis.set_minor_locator(MultipleLocator(0.1))
     for rect in ax.patches:
         height = rect.get_height()
         ax.annotate(f'{int(height)}', xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 5), textcoords='offset points', ha='center', va='bottom', fontsize=8)
-    plt.title('Occurrence of peak correlation coefficient between ARTEMIS and Omni in IMF Bz')
+    plt.title('Occurrence of slope close to 1 between ARTEMIS and OMNI in IMF Bz')
     plt.xlabel('Bin')
     plt.ylabel('Frequency (counts)')
 
     plt.xlim(-1, 1)
-    plt.savefig(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/', vars[int(varToPlot)]+'-slope.png'), dpi=300)
+    plt.savefig(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/', vars[int(varToPlot)]+'-pearson-fastSW.png'), dpi=300)
     plt.show()
 
 else:

@@ -46,6 +46,8 @@ elif int(varToMerge) < len(vars):
             file = pd.read_csv(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations', folderName, vars[int(varToMerge)], fileList[int(toCombine)]), delimiter=',', header=0, index_col=0)
             frame.append(file)
     df = pd.concat(frame)
+    df = df.reset_index(drop=True)
+
     if os.path.exists(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/merged', vars[int(varToMerge)])):
         df.to_csv(os.path.join(fDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/merged', vars[int(varToMerge)], 'output'+fileList[int(toCombine)]))
     else:
