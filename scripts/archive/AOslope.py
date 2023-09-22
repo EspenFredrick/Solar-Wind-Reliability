@@ -41,7 +41,7 @@ def getSlopeInt(artemis, omni, workingDir):
             dataRows.append(np.concatenate(([omni['Time'][n]], [omni['Time'][n+59]], slopeClosestToOne[0]), axis=None))
 
             plt.scatter(artemis[k][aStart-aoSlope.index(closestTo(aoSlope, 1)):aStop-aoSlope.index(closestTo(aoSlope, 1))], omni[k][n:n+59], color="red", marker="o", label="Original data")
-            y_pred = ao Int[aoSlope.index(closestTo(aoSlope, 1))] + closestTo(aoSlope, 1) * artemis[k][aStart-aoSlope.index(closestTo(aoSlope, 1)):aStop-aoSlope.index(closestTo(aoSlope, 1))]
+            y_pred = aoInt[aoSlope.index(closestTo(aoSlope, 1))] + closestTo(aoSlope, 1) * artemis[k][aStart-aoSlope.index(closestTo(aoSlope, 1)):aStop-aoSlope.index(closestTo(aoSlope, 1))]
             plt.plot(artemis[k][aStart-aoSlope.index(closestTo(aoSlope, 1)):aStop-aoSlope.index(closestTo(aoSlope, 1))], y_pred, color="green", label="Fitted line")
 
             if os.path.exists(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/slopes/{}/{}/'.format(omni['Time'][n].strftime('%Y-%m-%d'), k))):
