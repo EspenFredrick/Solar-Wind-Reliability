@@ -4,5 +4,9 @@
 .DS_Store
 *.xml
 *.iml
-*.jpg
-*.png
+output-data/correlation-plots/
+output-data/archive/
+scripts/omni_data
+scripts/themis_data
+scripts/artemis_data
+
