@@ -65,7 +65,7 @@ def correlate(artemis, omni, workingDir):
 
             # Slide Artemis 30 times (for a 30-minute shift) over the Omni set and append the metric to each array
             for i in range(31):
-                corrcoef = pearsonr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])[0]
+                corrcoef = pearsonr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])
                 mape, ratio, rmse, rmseArtemis, rmseOmni, rmseAverage, slopes, ints = corrMetrics(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])
 
                 for vals, lists in zip([corrcoef, mape, ratio, rmse, rmseArtemis, rmseOmni, rmseAverage, slopes, ints], [pearsonStore, mapeStore, ratioStore, rmseStore, artemisStore, omniStore, avgStore, slopeStore, intStore]):
@@ -92,14 +92,14 @@ def correlate(artemis, omni, workingDir):
         eventMetadata = pd.DataFrame(dataRows, columns=['Start', 'Stop','Pearson', 'Slope', 'Intercept', 'MAPE', 'Ratio', 'RMSE', 'RMSE_Artemis', 'RMSE_Omni', 'RMSE_Avg', 'hourly-velocity'])
         eventTimeShifts = pd.DataFrame(offsetRows, columns=['Start', 'Stop','Pearson', 'Slope', 'MAPE', 'Ratio', 'RMSE', 'RMSE_Artemis', 'RMSE_Omni', 'RMSE_Avg'])
 
-        if os.path.exists(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/'.format(omni['Time'][n].strftime('%Y-%m-%d_%H-%M'), k))):
-            eventMetadata.to_csv(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/metrics.csv'.format(omni['Time'][n].strftime('%Y-%m-%d_%H-%M'), k)))
-            eventTimeShifts.to_csv(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/timeshifts.csv'.format(omni['Time'][n].strftime('%Y-%m-%d_%H-%M'), k)))
+        if os.path.exists(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/'.format(artemis['Time'][0].strftime('%Y-%m-%d_%H-%M'), k))):
+            eventMetadata.to_csv(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/metrics.csv'.format(artemis['Time'][0].strftime('%Y-%m-%d_%H-%M'), k)))
+            eventTimeShifts.to_csv(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/timeshifts.csv'.format(artemis['Time'][0].strftime('%Y-%m-%d_%H-%M'), k)))
 
         else:
-            os.makedirs(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/'.format(omni['Time'][n].strftime('%Y-%m-%d_%H-%M'), k)))
-            eventMetadata.to_csv(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/metrics.csv'.format(omni['Time'][n].strftime('%Y-%m-%d_%H-%M'), k)))
-            eventTimeShifts.to_csv(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/timeshifts.csv'.format(omni['Time'][n].strftime('%Y-%m-%d_%H-%M'), k)))
+            os.makedirs(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/'.format(artemis['Time'][0].strftime('%Y-%m-%d_%H-%M'), k)))
+            eventMetadata.to_csv(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/metrics.csv'.format(artemis['Time'][0].strftime('%Y-%m-%d_%H-%M'), k)))
+            eventTimeShifts.to_csv(os.path.join(workingDir, 'Solar-Wind-Reliability/output-data/hourly-correlations/{}/{}/timeshifts.csv'.format(artemis['Time'][0].strftime('%Y-%m-%d_%H-%M'), k)))
 
     print('Done.')
 
