@@ -14,11 +14,29 @@ ___
 
 ### Table of Contents:
 - README.md - *This file.*
-- [Metadata](./metadata) - *Contains the generated metadata files.*
-  - readme.md - *Outlines the metadata file structure*
+- [Scripts](./scripts) - *Python (.py) and Jupyter (.ipynb) scripts used to calculate correlation coefficients, process data, make plots, import data, etc.*
+- [Output Data](./output-data) - *Contains the generated metadata files.*
 - [Event List](./eventlist) - *Contains the list of events used in analysis.*
-  - readme.md - *Outlines the structure of the event list. To append this list, please follow this format.*
-- [Scripts](./scripts) - *Python and ipynb (juptyer) scripts used to calculate correlation coeffients, process data, etc.*
-  - Artemis correlation.ipynb - *Correlates either THEMIS or OMNI data with lunar ARTEMIS data.*  
-- [GUI](./GUI) - *GUI programs, including the plotting tool.*
+
+Solar-Wind-Reliability/
+├── scripts/
+│   ├── data-importing/
+│   │   ├── DataImporter.py
+│   │   ├── GetSatellitesGSE.py
+│   │   └── GetSatellitesGSM.py
+│   ├── data-analysis/
+│   │   ├── Correlator-Parallel.py
+│   │   ├── IdentifyStructure.py
+│   │   ├── CSVCombiner.py
+│   │   └── MetricAverager.py
+│   └── plotting/
+│       ├── Plotter-Parallel.py
+│       ├── Scatterplots.py
+│       ├── DistPlotter.py
+│       ├── HistPlotter.py
+│       └── Animator.ipynb
+├── output-data
+├── gui-programs
+├── eventlist
+└── readme.md
 
