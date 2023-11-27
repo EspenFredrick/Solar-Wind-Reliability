@@ -2,12 +2,11 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr, linregress
 import os
+import time
 
-# Find slope closest to _...
+# Find slope closest to a given value
 def closestTo(inputList, val):
-  arr = np.asarray(inputList)
-  i = (np.abs(arr - val)).argmin()
-  return arr[i]
+    return inputList[np.argmin(np.abs(np.array(inputList) - val))]
 
 # Correlation metrics
 def corrMetrics(omni, artemis):
@@ -18,7 +17,7 @@ def corrMetrics(omni, artemis):
     rmseOmni = np.sqrt(np.sum([((a - o) ** 2) / (o ** 2) if o != 0 else 0 for o, a in zip(omni, artemis)]) / 60)
     rmseAverage = np.sqrt(np.sum([((a - o) ** 2) / (((a + o) / 2) ** 2) for o, a in zip(omni, artemis)]) / 60)
 
-    slope, intercept, rvalue, pvalue, stderr = linregress(artemis, omni)
+    slope, intercept, *_ = linregress(artemis, omni)
 
     return mape, ratio, rmse, rmseArtemis, rmseOmni, rmseAverage, slope, intercept
 
@@ -26,7 +25,7 @@ def corrMetrics(omni, artemis):
 def correlate(artemis, omni, workingDir):
     # Variables to loop over and their respective units
     keys = ['BX_GSE', 'BY_GSE', 'BZ_GSE', 'Vx', 'Vy', 'Vz', 'proton_density', 'T']
-    numWindows = len(omni)-59 # Number of 1-hour blocks in the data set
+    numWindows = len(omni)-60 # Number of 1-hour blocks in the data set
 
     for k in keys:
         print('Key {}: Computing {} windows...'.format(k, numWindows))
@@ -36,9 +35,9 @@ def correlate(artemis, omni, workingDir):
         for n in range(numWindows): # Loop over each block
         # Find the start and stop index in Artemis that matches the nth and n+59th window of Omni
             aStart = (artemis.loc[artemis['Time'] == omni['Time'][n]]).index[0]
-            aStop = (artemis.loc[artemis['Time'] == omni['Time'][n+59]]).index[0]
+            aStop = (artemis.loc[artemis['Time'] == omni['Time'][n+60]]).index[0]
 
-            hourlyvelocity = np.average(omni['Vx'][n:n + 59])
+            hourlyvelocity = np.average(omni['Vx'][n:n+60])
 
             # Initialize empty storage arrays for each metric
             pearsonStore = []
@@ -65,8 +64,8 @@ def correlate(artemis, omni, workingDir):
 
             # Slide Artemis 30 times (for a 30-minute shift) over the Omni set and append the metric to each array
             for i in range(31):
-                corrcoef = pearsonr(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])
-                mape, ratio, rmse, rmseArtemis, rmseOmni, rmseAverage, slopes, ints = corrMetrics(omni[k][n:n+59], artemis[k][aStart-i:aStop-i])
+                corrcoef, pval = pearsonr(omni[k][n:n+60], artemis[k][aStart-i:aStop-i])
+                mape, ratio, rmse, rmseArtemis, rmseOmni, rmseAverage, slopes, ints = corrMetrics(omni[k][n:n+60], artemis[k][aStart-i:aStop-i])
 
                 for vals, lists in zip([corrcoef, mape, ratio, rmse, rmseArtemis, rmseOmni, rmseAverage, slopes, ints], [pearsonStore, mapeStore, ratioStore, rmseStore, artemisStore, omniStore, avgStore, slopeStore, intStore]):
                     lists.append(vals)
@@ -86,8 +85,8 @@ def correlate(artemis, omni, workingDir):
 
 
 
-            dataRows.append(np.concatenate(([omni['Time'][n]], [omni['Time'][n+59]], pearsonMax[0], slopeClosestToOne[0], slopeClosestToOne[2], mapeMin[0], ratioMin[0], rmseMin[0], artemisMin[0], omniMin[0], avgMin[0], hourlyvelocity), axis=None))
-            offsetRows.append(np.concatenate(([omni['Time'][n]], [omni['Time'][n+59]], pearsonMax[1], slopeClosestToOne[1], mapeMin[1], ratioMin[1], rmseMin[1], artemisMin[1], omniMin[1], avgMin[1]), axis=None))
+            dataRows.append(np.concatenate(([omni['Time'][n]], [omni['Time'][n+60]], pearsonMax[0], slopeClosestToOne[0], slopeClosestToOne[2], mapeMin[0], ratioMin[0], rmseMin[0], artemisMin[0], omniMin[0], avgMin[0], hourlyvelocity), axis=None))
+            offsetRows.append(np.concatenate(([omni['Time'][n]], [omni['Time'][n+60]], pearsonMax[1], slopeClosestToOne[1], mapeMin[1], ratioMin[1], rmseMin[1], artemisMin[1], omniMin[1], avgMin[1]), axis=None))
 
         eventMetadata = pd.DataFrame(dataRows, columns=['Start', 'Stop','Pearson', 'Slope', 'Intercept', 'MAPE', 'Ratio', 'RMSE', 'RMSE_Artemis', 'RMSE_Omni', 'RMSE_Avg', 'hourly-velocity'])
         eventTimeShifts = pd.DataFrame(offsetRows, columns=['Start', 'Stop','Pearson', 'Slope', 'MAPE', 'Ratio', 'RMSE', 'RMSE_Artemis', 'RMSE_Omni', 'RMSE_Avg'])
@@ -117,6 +116,8 @@ for nums, files in enumerate(omniFileList):
 toCorrelate = input('Please enter the number of the file you wish to correlate, or type "all" to correlate the whole folder: ')
 
 if toCorrelate == 'all':
+    start_time = time.time()
+
     for l in range(len(omniFileList)):
         if not omniFileList[l].startswith('.') and not 'copy' in omniFileList[l]:
             print('Correlating {}...'.format(omniFileList[l]))
@@ -126,6 +127,8 @@ if toCorrelate == 'all':
             omniData['Time'] = pd.to_datetime(omniData['Time'], format='%Y-%m-%d %H:%M:%S')
 
             correlate(artemisData, omniData, projDir)
+    elapsed_time = time.time() - start_time
+    print(f"Executed in {elapsed_time:.4f} seconds")
 
 elif int(toCorrelate) < len(omniFileList):
     print('Correlating {} and {}...'.format(omniFileList[int(toCorrelate)], artemisFileList[int(toCorrelate)]))
@@ -134,7 +137,10 @@ elif int(toCorrelate) < len(omniFileList):
     artemisData['Time'] = pd.to_datetime(artemisData['Time'], format='%Y-%m-%d %H:%M:%S')
     omniData['Time'] = pd.to_datetime(omniData['Time'], format='%Y-%m-%d %H:%M:%S')
 
+    start_time = time.time()
     correlate(artemisData, omniData, projDir)
+    elapsed_time = time.time() - start_time
+    print(f"Executed in {elapsed_time:.4f} seconds")
 
 else:
     raise ValueError('Must be "any" or less than {}'.format(len(omniFileList)))

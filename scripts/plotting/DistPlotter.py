@@ -11,7 +11,7 @@ def probDistGraph(series):
     for b in np.arange(1, -0.1, -0.1):
         counter = 0
         for s in series:
-            if s < b:
+            if s >= b:
                 counter = counter + 1
         binHeights.append(counter)
     print(binHeights)
@@ -30,7 +30,7 @@ for n, v in enumerate(vars):
     print('{} - {}'.format(n, v))
 varToPlot = input('Please enter variable to plot or specify "all" to generate distribution plots for all variables: ')
 
-corrs = ['R', 'Rho', 'Tau', 'MAPE', 'RMSE', 'Ratio', 'RMSE_Artemis', 'RMSE_Omni', 'Avg_RMSE']
+corrs = ['Pearson', 'Slope', 'Intercept', 'MAPE', 'Ratio', 'RMSE', 'RMSE_Artemis', 'RMSE_Omni', 'RMSE_Avg', 'hourly-velocity']
 for n, c in enumerate(corrs):
     print('{} - {}'.format(n, c))
 corrToPlot = input('Please enter the metric to plot or specify "all" to generate distribution plots for for all metrics: ')
